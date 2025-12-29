@@ -1,9 +1,10 @@
 package com.mmondani.restful_web_services.user;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -22,6 +23,28 @@ public class UserResource {
 
     @GetMapping(path = "/users/{id}")
     public User retrieveUser(@PathVariable int id) {
-        return service.findOne(id);
+        User user = service.findOne(id);
+
+        if (user == null) {
+            throw new UserNotFountException("id: " + id);
+        }
+        return user;
+    }
+
+    @DeleteMapping(path = "/users/{id}")
+    public void deleteUser(@PathVariable int id) {
+        service.deleteById(id);
+    }
+
+    @PostMapping(path = "/users")
+    public ResponseEntity<User> createUser (@RequestBody User user) {
+        User newUser = service.save(user);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(user.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).build();
     }
 }
